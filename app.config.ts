@@ -1,7 +1,6 @@
-import { ExpoConfig, ConfigContext } from 'expo/config';
+import { ExpoConfig } from 'expo/config';
 
-export default ({ config }: ConfigContext): ExpoConfig => ({
-  ...config,
+export default (): ExpoConfig => ({
   name: "Verifi",
   slug: "verifi-final",
   version: "1.0.0",
@@ -42,9 +41,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       }
     ]
   ],
-  // This section is now updated with your real Project ID
   extra: {
     eas: {
+      // TODO: Find your Project ID on expo.dev and paste it here
       projectId: "20b289ca-0a48-4ae9-bb2d-616806b3ef50"
     }
   }
