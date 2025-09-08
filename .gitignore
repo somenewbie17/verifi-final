@@ -1,0 +1,15 @@
+# Node
+node_modules/
+npm-debug.log
+
+# Expo
+.expo/
+dist/
+.idea/
+
+# Environment
+.env
+
+# Build artifacts
+*.ipa
+*.apk

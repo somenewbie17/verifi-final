@@ -1,0 +1,23 @@
+/* This file is for web builds to mirror our theme tokens.
+ React Native for Web can use these variables to style components.
+*/
+
+:root {
+  /* Core Brand Colors */
+  --color-primary-green: #1E8B57;
+  --color-accent-gold: #E6C642;
+
+  /* Light Theme Palette */
+  --light-background: #F4F4F5;
+  --light-text: #000000;
+  --light-text-secondary: #52525B;
+  --light-card: #FFFFFF;
+  --light-border: #E4E4E7;
+
+  /* Dark Theme Palette */
+  --dark-background: #18181B;
+  --dark-text: #FFFFFF;
+  --dark-text-secondary: #A1A1AA;
+  --dark-card: #27272A;
+  --dark-border: #52525B;
+}
