@@ -1,7 +1,7 @@
 {
   "name": "verifi-final",
   "version": "1.0.0",
-  "main": "node_modules/expo/AppEntry.js",
+  "main": "app.tsx",
   "scripts": {
     "dev": "expo start",
     "android": "expo start --android",
@@ -37,7 +37,8 @@
     "react-native-screens": "3.31.1",
     "react-native-web": "~0.19.10",
     "uuid": "^9.0.1",
-    "zustand": "^5.0.8"
+    "zustand": "^5.0.8",
+    "@expo/metro-runtime": "~3.2.3"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, Pressable } from 'react-native';
 import { useTheme } from '@/src/hooks/useTheme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, Ionicons } from '@expo/vector-icons';
@@ -9,6 +9,11 @@ import Chip from '@/src/components/ui/Chip';
 import { useNavigation } from '@react-navigation/native';
 
 const CATEGORIES: Category[] = ['Food', 'Salons', 'Barbers', 'Auto', 'Hotels', 'Services'];
+
+const MOCK_PROMOS = [
+    { id: 'promo1', businessId: '2', title: '2-for-1 Lunch Special', businessName: "Oasis Cafe", ends_at: "Today" },
+    { id: 'promo2', businessId: '1', title: '15% Off Dinner', businessName: "Bistro Cafe & Bar", ends_at: "This Week" },
+];
 
 export default function HomeScreen() {
   const { theme } = useTheme();
@@ -25,7 +30,7 @@ export default function HomeScreen() {
             Discover
           </Text>
           <Text style={[theme.typography.h1, { color: theme.colors.textSecondary }]}>
-            Georgetown
+            Guyana
           </Text>
         </View>
 
@@ -45,7 +50,11 @@ export default function HomeScreen() {
           </Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: theme.spacing.s }}>
             {CATEGORIES.map(category => (
-              <Chip key={category} label={category} />
+              <Chip 
+                key={category} 
+                label={category} 
+                onPress={() => navigation.navigate('Search')}
+              />
             ))}
           </ScrollView>
         </View>
@@ -54,18 +63,22 @@ export default function HomeScreen() {
           <Text style={[theme.typography.h3, { color: theme.colors.text, marginBottom: theme.spacing.m }]}>
             Today’s Deals
           </Text>
-          <Card style={{ marginBottom: theme.spacing.m }}>
-            <View style={styles.promoCard}>
-                <Ionicons name="pricetag-outline" size={24} color={theme.colors.primary} />
-                <View style={{flex: 1}}>
-                    <Text style={[theme.typography.bodyBold, { color: theme.colors.text }]}>2-for-1 Lunch Special</Text>
-                    <Text style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>German's Restaurant</Text>
+          {MOCK_PROMOS.map(promo => (
+            <Pressable key={promo.id} onPress={() => navigation.navigate('Business', { businessId: promo.businessId })}>
+              <Card style={{ marginBottom: theme.spacing.m }}>
+                <View style={styles.promoCard}>
+                    <Ionicons name="pricetag-outline" size={24} color={theme.colors.primary} />
+                    <View style={{flex: 1}}>
+                        <Text style={[theme.typography.bodyBold, { color: theme.colors.text }]}>{promo.title}</Text>
+                        <Text style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>{promo.businessName}</Text>
+                    </View>
+                    <View style={{backgroundColor: theme.colors.accent, paddingVertical: 4, paddingHorizontal: 8, borderRadius: 6}}>
+                        <Text style={[theme.typography.caption, {color: theme.colors.black, fontWeight: 'bold'}]}>ENDS {promo.ends_at.toUpperCase()}</Text>
+                    </View>
                 </View>
-                <View style={{backgroundColor: theme.colors.accent, paddingVertical: 4, paddingHorizontal: 8, borderRadius: 6}}>
-                    <Text style={[theme.typography.caption, {color: theme.colors.black, fontWeight: 'bold'}]}>ENDS TODAY</Text>
-                </View>
-            </View>
-          </Card>
+              </Card>
+            </Pressable>
+          ))}
         </View>
 
       </ScrollView>

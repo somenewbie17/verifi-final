@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
 import { useAuth } from '@/api/auth';
-import { useTheme } from '@/src/hooks/useTheme'; // Corrected Path
+import { useTheme } from '@/src/hooks/useTheme';
 import Button from '@/components/Button';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
 export default function LoginScreen() {
   const { theme } = useTheme();
   const { login } = useAuth();
+  const navigation = useNavigation<any>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -22,8 +24,6 @@ export default function LoginScreen() {
     if (error) {
       Alert.alert('Login Failed', error.message);
     }
-    // Note: If login is successful, the RootNavigator will automatically
-    // switch to the main app view. We don't need to navigate here.
     setLoading(false);
   };
 
@@ -71,12 +71,12 @@ export default function LoginScreen() {
           loading={loading}
           style={{ marginTop: theme.spacing.l }}
         />
-        <Pressable onPress={() => { /* TODO: Forgot Password Flow */ }}>
+        <Pressable onPress={() => Alert.alert('Forgot Password', 'Password recovery has not been implemented yet.')}>
           <Text style={[styles.link, { color: theme.colors.accent, marginTop: theme.spacing.m }]}>
             Forgot Password?
           </Text>
         </Pressable>
-        <Pressable onPress={() => { /* TODO: Sign Up Flow */ }}>
+        <Pressable onPress={() => navigation.navigate('RoleSelection')}>
           <Text style={[styles.link, { color: theme.colors.textSecondary, marginTop: theme.spacing.xl }]}>
             Don't have an account? <Text style={{color: theme.colors.primary, fontWeight: 'bold'}}>Sign Up</Text>
           </Text>
