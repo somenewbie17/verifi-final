@@ -1,78 +1,148 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions, Pressable } from 'react-native';
-import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Dimensions,
+  Linking,
+  Alert,
+  Share, // 1. Import the Share API
+} from 'react-native';
+import { useRoute, RouteProp } from '@react-navigation/native';
 import { useTheme } from '@/src/hooks/useTheme';
-import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '@/components/Button';
 import VerifiedBadge from '@/src/components/ui/VerifiedBadge';
 import useWhatsApp from '@/src/hooks/useWhatsApp';
+import { useBusinessById } from '@/api/queries/businesses';
+import Loading from '@/src/components/ui/Loading';
+import ImageWithFallback from '@/src/components/ui/ImageWithFallback';
 
-// Mock data - in a real app, this would be a fetch based on businessId
-const MOCK_RESULTS = [
-  { id: '1', name: 'Bistro Cafe & Bar', categories: ['Food'], photo: 'https://images.unsplash.com/photo-1552566626-52f8b828add9?q=80&w=2670&auto=format&fit=crop', phone: "5922251234", whatsapp: "5926001234", verified: false },
-  { id: '2', name: "Oasis Cafe", categories: ['Food'], photo: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=2574&auto=format&fit=crop', phone: "5922255678", whatsapp: "5926005678", verified: true },
-  { id: '3', name: "King's Jewellery World", categories: ['Services'], photo: 'https://images.unsplash.com/photo-1610192134293-8a3561b00b0b?q=80&w=2670&auto=format&fit=crop', phone: "5922259999", whatsapp: "5926009999", verified: true },
-];
-
-type BusinessScreenRouteProp = RouteProp<{ params: { businessId: string } }, 'params'>;
+type BusinessScreenRouteProp =
+  RouteProp<{ params: { businessId: string } }, 'params'>;
 
 export default function BusinessScreen() {
   const { theme } = useTheme();
-  const navigation = useNavigation();
   const route = useRoute<BusinessScreenRouteProp>();
-  const { businessId } = route.params;
   const { openWhatsApp } = useWhatsApp();
+  const { businessId } = route.params;
+  const { data: business, isLoading, isError } = useBusinessById(businessId);
 
-  // Find the correct business from our mock data
-  const business = MOCK_RESULTS.find(b => b.id === businessId);
+  const handleCallPress = () => {
+    if (!business?.phone) return;
+    // 2. We clean the phone number to remove any non-digit characters
+    const phoneNumber = business.phone.replace(/[^0-9]/g, '');
+    const phoneUrl = `tel:${phoneNumber}`;
+    
+    Linking.canOpenURL(phoneUrl)
+      .then((supported) => {
+        if (supported) {
+          return Linking.openURL(phoneUrl);
+        } else {
+          Alert.alert('Error', 'Unable to make phone calls from this device.');
+        }
+      })
+      .catch((err) => console.error('An error occurred', err));
+  };
+  
+  const handleWhatsAppPress = () => {
+    if (!business?.whatsapp) return;
+    openWhatsApp(
+      business.whatsapp,
+      `Hi, I found ${business.name} on Verifi. I have a question.`
+    );
+  };
+  
+  // 3. This function handles the "Share" button press.
+  const handleSharePress = async () => {
+    if (!business) return;
+    try {
+      // It opens the native OS share dialog.
+      await Share.share({
+        message: `Check out ${business.name} on Verifi!`,
+        // url: 'https://verifi.gy/business/123' // In the future, you'd add a deep link here
+      });
+    } catch (error) {
+      Alert.alert('Error', 'Could not share this business.');
+    }
+  };
 
-  // Handle case where business is not found
-  if (!business) {
+  if (isLoading) {
+    return <Loading />;
+  }
+
+  if (isError || !business) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>Business not found!</Text>
+      <View style={styles.centerContainer}>
+        <Text style={{ color: theme.colors.text }}>
+          Business not found or failed to load.
+        </Text>
       </View>
     );
   }
-
-  const handleWhatsAppPress = () => {
-    openWhatsApp(business.whatsapp, `Hi, I found ${business.name} on Verifi. I have a question.`);
-  };
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <ScrollView>
         <View>
-          <Image
-            source={{ uri: business.photo }}
+          <ImageWithFallback
+            uri={business.photos[0]}
             style={styles.headerImage}
-            contentFit="cover"
-            transition={300}
           />
           <View style={styles.headerOverlay} />
-          
-          {/* The manual back button has been removed from here */}
 
           <View style={styles.headerContent}>
-            <Text style={[theme.typography.h1, styles.headerText]}>{business.name}</Text>
+            <Text style={[theme.typography.h1, styles.headerText]}>
+              {business.name}
+            </Text>
             {business.verified && <VerifiedBadge size={28} />}
           </View>
         </View>
-        
-        <View style={styles.contentContainer}>
-             <Text style={[theme.typography.h3, { color: theme.colors.text }]}>About</Text>
-             <Text style={[theme.typography.body, { color: theme.colors.textSecondary, marginTop: theme.spacing.s }]}>
-                More details about the business, hours, address, etc. will go here.
-             </Text>
-        </View>
 
+        <View style={styles.contentContainer}>
+          <Text style={[theme.typography.h3, { color: theme.colors.text }]}>
+            About
+          </Text>
+          <Text
+            style={[
+              theme.typography.body,
+              { color: theme.colors.textSecondary, marginTop: theme.spacing.s },
+            ]}
+          >
+            {business.address}, {business.city}
+          </Text>
+        </View>
       </ScrollView>
 
-      <SafeAreaView style={[styles.actionBar, { backgroundColor: theme.colors.card, borderTopColor: theme.colors.border }]} edges={['bottom']}>
-        <Button title="Call" variant='secondary' onPress={() => { /* TODO */ }} style={{ flex: 1 }}/>
-        <Button title="WhatsApp" variant='primary' onPress={handleWhatsAppPress} style={{ flex: 2, marginHorizontal: theme.spacing.m }}/>
-        <Button title="Share" variant='accent' onPress={() => { /* TODO */ }} style={{ flex: 1 }}/>
+      <SafeAreaView
+        style={[
+          styles.actionBar,
+          {
+            backgroundColor: theme.colors.card,
+            borderTopColor: theme.colors.border,
+          },
+        ]}
+        edges={['bottom']}
+      >
+        <Button
+          title="Call"
+          variant="secondary"
+          onPress={handleCallPress}
+          style={{ flex: 1 }}
+        />
+        <Button
+          title="WhatsApp"
+          variant="primary"
+          onPress={handleWhatsAppPress}
+          style={{ flex: 2, marginHorizontal: theme.spacing.m }}
+        />
+        <Button
+          title="Share"
+          variant="accent"
+          onPress={handleSharePress} // 4. Hook up the new function
+          style={{ flex: 1 }}
+        />
       </SafeAreaView>
     </View>
   );
@@ -108,5 +178,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderTopWidth: 1,
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
