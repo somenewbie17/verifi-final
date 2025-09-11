@@ -44,6 +44,8 @@ export interface Promo {
   starts_at: string;
   ends_at: string;
   active: boolean;
+  // Add this line to include the nested business object
+  businesses: { name: string } | null;
 }
 
 export interface User {

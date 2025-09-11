@@ -35,4 +35,14 @@ export const businessesRepo = {
     );
     return results.map(parseBusiness);
   },
+
+  // --- ADD THIS NEW FUNCTION ---
+  // This function fetches all businesses from the database.
+  async getAllBusinesses(): Promise<Business[]> {
+    const results = await db.getAllAsync<any>(
+      'SELECT * FROM businesses',
+      []
+    );
+    return results.map(parseBusiness);
+  },
 };

@@ -24,22 +24,16 @@ export default function SearchScreen() {
   const navigation = useNavigation<any>();
   const [searchQuery, setSearchQuery] = useState('');
 
-  // 1. This uses the hook we created to delay the search until the user stops typing.
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
-  // 2. This hook fetches live data from your database using the search query.
-  // The old `MOCK_RESULTS` array and `useEffect` for filtering are now completely gone.
   const {
     data: businesses,
     isLoading,
     isError,
   } = useSearchBusinesses(debouncedSearchQuery);
 
-  // 3. This function renders a card for each business returned from the database.
   const renderBusinessCard = ({ item }: { item: Business }) => (
     <Pressable
-      // It passes the REAL database ID (a long UUID string) to the Business screen.
-      // This is the key part of the fix.
       onPress={() => navigation.navigate('Business', { businessId: item.id })}
     >
       <Card style={{ marginBottom: theme.spacing.m }}>
@@ -94,7 +88,6 @@ export default function SearchScreen() {
         />
       </View>
 
-      {/* 4. This section now properly handles the loading and error states from the database query. */}
       {isLoading && searchQuery ? (
         <Loading />
       ) : isError ? (

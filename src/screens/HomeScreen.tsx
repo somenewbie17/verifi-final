@@ -6,17 +6,17 @@ import {
   ScrollView,
   TextInput,
   Pressable,
+  ActivityIndicator,
 } from 'react-native';
 import { useTheme } from '@/src/hooks/useTheme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, Ionicons } from '@expo/vector-icons';
-import { Category } from '@/types';
+import { Category, Promo } from '@/types';
 import Card from '@/src/components/ui/Card';
 import Chip from '@/src/components/ui/Chip';
 import { useNavigation } from '@react-navigation/native';
 import PromoBadge from '@/src/components/ui/PromoBadge';
-import { useActivePromos } from '@/api/queries/promos'; // 1. Import the new hook
-import Loading from '@/src/components/ui/Loading'; // Import loading component
+import { useActivePromos } from '@/api/queries/promos';
 
 const CATEGORIES: Category[] = [
   'Food', 'Salons', 'Barbers', 'Auto', 'Hotels', 'Services',
@@ -26,7 +26,8 @@ export default function HomeScreen() {
   const { theme } = useTheme();
   const navigation = useNavigation<any>();
 
-  // 2. Fetch promos using our react-query hook. The MOCK_PROMOS array is gone.
+  // 1. We call our custom hook to fetch live promo data from Supabase.
+  // The MOCK_PROMOS array is now completely gone.
   const { data: promos, isLoading } = useActivePromos();
 
   return (
@@ -81,9 +82,9 @@ export default function HomeScreen() {
           <Text style={[theme.typography.h3, { color: theme.colors.text, marginBottom: theme.spacing.m }]}>
             Today’s Deals
           </Text>
-          {/* 3. We now handle the loading state and map over the real promo data */}
+          {/* 2. We now handle the loading state from the database call. */}
           {isLoading ? (
-            <Loading />
+            <ActivityIndicator color={theme.colors.primary} style={{ marginTop: 20 }} />
           ) : (
             promos?.map((promo) => (
               <Pressable
@@ -101,9 +102,9 @@ export default function HomeScreen() {
                       <Text style={[theme.typography.bodyBold, { color: theme.colors.text }]}>
                         {promo.title}
                       </Text>
+                      {/* 3. We access the business name from the nested object */}
                       <Text style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>
-                        {/* We need to join to get business name, will do that in the next step */}
-                        German's Restaurant
+                        {promo.businesses?.name}
                       </Text>
                     </View>
                     <PromoBadge text="ACTIVE" />
