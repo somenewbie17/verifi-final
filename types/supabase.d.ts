@@ -14,106 +14,90 @@ export type Database = {
   }
   public: {
     Tables: {
-      businesses: {
-        Row: {
-          address: string | null
-          categories: string | null
-          city: string
-          created_at: string | null
-          hours: string | null
-          id: string
-          lat: number | null
-          lng: number | null
-          name: string
-          phone: string | null
-          photos: string | null
-          price_band: string | null
-          verified: boolean | null
-          whatsapp: string
-        }
-        Insert: {
-          address?: string | null
-          categories?: string | null
-          city: string
-          created_at?: string | null
-          hours?: string | null
-          id: string
-          lat?: number | null
-          lng?: number | null
-          name: string
-          phone?: string | null
-          photos?: string | null
-          price_band?: string | null
-          verified?: boolean | null
-          whatsapp: string
-        }
-        Update: {
-          address?: string | null
-          categories?: string | null
-          city?: string
-          created_at?: string | null
-          hours?: string | null
-          id?: string
-          lat?: number | null
-          lng?: number | null
-          name?: string
-          phone?: string | null
-          photos?: string | null
-          price_band?: string | null
-          verified?: boolean | null
-          whatsapp?: string
-        }
-        Relationships: []
-      }
-      claims: {
+      analytics_events: {
         Row: {
           business_id: string
           created_at: string | null
-          evidence_url: string | null
-          id: string
-          method: string
-          status: string | null
-          user_id: string
+          event_name: string
+          id: number
         }
         Insert: {
           business_id: string
           created_at?: string | null
-          evidence_url?: string | null
-          id: string
-          method: string
-          status?: string | null
-          user_id: string
+          event_name: string
+          id?: never
         }
         Update: {
           business_id?: string
           created_at?: string | null
-          evidence_url?: string | null
-          id?: string
-          method?: string
-          status?: string | null
-          user_id?: string
+          event_name?: string
+          id?: never
         }
         Relationships: [
           {
-            foreignKeyName: "claims_business_id_fkey"
+            foreignKeyName: "analytics_events_business_id_fkey"
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businesses"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "claims_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
         ]
+      }
+      businesses: {
+        Row: {
+          address: string | null
+          categories: Json | null
+          city: string | null
+          created_at: string | null
+          hours: Json | null
+          id: string
+          lat: number | null
+          lng: number | null
+          name: string
+          phone: string | null
+          photos: Json | null
+          price_band: string | null
+          verified: boolean | null
+          whatsapp: string | null
+        }
+        Insert: {
+          address?: string | null
+          categories?: Json | null
+          city?: string | null
+          created_at?: string | null
+          hours?: Json | null
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          name: string
+          phone?: string | null
+          photos?: Json | null
+          price_band?: string | null
+          verified?: boolean | null
+          whatsapp?: string | null
+        }
+        Update: {
+          address?: string | null
+          categories?: Json | null
+          city?: string | null
+          created_at?: string | null
+          hours?: Json | null
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          name?: string
+          phone?: string | null
+          photos?: Json | null
+          price_band?: string | null
+          verified?: boolean | null
+          whatsapp?: string | null
+        }
+        Relationships: []
       }
       promos: {
         Row: {
           active: boolean | null
-          business_id: string
+          business_id: string | null
           desc: string | null
           ends_at: string
           id: string
@@ -122,16 +106,16 @@ export type Database = {
         }
         Insert: {
           active?: boolean | null
-          business_id: string
+          business_id?: string | null
           desc?: string | null
           ends_at: string
-          id: string
+          id?: string
           starts_at: string
           title: string
         }
         Update: {
           active?: boolean | null
-          business_id?: string
+          business_id?: string | null
           desc?: string | null
           ends_at?: string
           id?: string
@@ -150,34 +134,34 @@ export type Database = {
       }
       reviews: {
         Row: {
-          business_id: string
+          business_id: string | null
           created_at: string | null
           id: string
-          photos: string | null
+          photos: Json | null
           rating: number
           status: string | null
           text: string | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
-          business_id: string
+          business_id?: string | null
           created_at?: string | null
-          id: string
-          photos?: string | null
+          id?: string
+          photos?: Json | null
           rating: number
           status?: string | null
           text?: string | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
-          business_id?: string
+          business_id?: string | null
           created_at?: string | null
           id?: string
-          photos?: string | null
+          photos?: Json | null
           rating?: number
           status?: string | null
           text?: string | null
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -188,27 +172,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      users: {
-        Row: {
-          email: string | null
-          id: string
-          phone: string | null
-          role: string | null
-        }
-        Insert: {
-          email?: string | null
-          id: string
-          phone?: string | null
-          role?: string | null
-        }
-        Update: {
-          email?: string | null
-          id?: string
-          phone?: string | null
-          role?: string | null
-        }
-        Relationships: []
       }
     }
     Views: {

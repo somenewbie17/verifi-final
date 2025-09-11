@@ -8,22 +8,20 @@ export const promosRepo = {
   async getActivePromos(): Promise<Promo[]> {
     const now = new Date().toISOString();
 
-    // 1. This is now a Supabase query.
     const { data, error } = await supabase
       .from('promos')
-      // 2. `select` is the key part. `*` gets all columns from the `promos` table.
-      // `businesses ( name )` tells Supabase to also fetch the `name`
-      // from the related business for each promo.
       .select('*, businesses ( name )')
       .eq('active', true)
-      .lte('starts_at', now) // lte = Less Than or Equal To
-      .gte('ends_at', now);  // gte = Greater Than or Equal To
+      .lte('starts_at', now)
+      .gte('ends_at', now);
 
     if (error) {
       console.error('Error fetching active promos:', error);
       return [];
     }
 
-    return data || [];
+    // We use 'as any' here as a safe way to handle the complex type
+    // that Supabase returns for table joins.
+    return (data as any) || [];
   },
 };

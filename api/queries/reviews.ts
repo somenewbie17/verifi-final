@@ -1,6 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { reviewsRepo } from '@/api/repositories/reviews.repo';
-import { Review } from '@/types';
+import { Database } from '@/types/supabase';
+
+// This is the specific type for creating a NEW review. It comes from the
+// auto-generated `supabase.d.ts` file and is the correct type for inserts.
+type ReviewInsert = Database['public']['Tables']['reviews']['Insert'];
 
 /**
  * A custom hook to fetch all approved reviews for a specific business.
@@ -13,7 +17,7 @@ export const useReviewsForBusiness = (businessId: string | undefined) => {
       if (!businessId) return [];
       return reviewsRepo.getReviewsForBusiness(businessId);
     },
-    enabled: !!businessId, // Only run the query if businessId is available.
+    enabled: !!businessId,
   });
 };
 
@@ -25,17 +29,35 @@ export const useCreateReview = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (newReview: Omit<Review, 'id' | 'created_at' | 'status'>) => {
+    // The mutation function now expects an object of type `ReviewInsert`.
+    mutationFn: (newReview: ReviewInsert) => {
       return reviewsRepo.createReview(newReview);
     },
+    // The `onSuccess` function runs after the mutation is successful.
     onSuccess: (_, variables) => {
-      // After a review is successfully created, we tell react-query to
-      // invalidate the cache for that business's reviews. This automatically
-      // triggers a refetch on the BusinessScreen, showing the new review
-      // (once it's approved).
+      // This tells react-query to refetch the data for both the approved reviews
+      // on the BusinessScreen and the pending reviews on the Dashboard, ensuring
+      // the UI updates automatically after a new review is submitted.
       queryClient.invalidateQueries({
         queryKey: ['reviews', variables.business_id],
       });
+      queryClient.invalidateQueries({
+        queryKey: ['reviews', variables.business_id, 'pending'],
+      });
     },
+  });
+};
+
+/**
+ * A custom hook to fetch pending reviews for a business.
+ */
+export const usePendingReviews = (businessId: string | undefined) => {
+  return useQuery({
+    queryKey: ['reviews', businessId, 'pending'],
+    queryFn: () => {
+      if (!businessId) return [];
+      return reviewsRepo.getPendingReviewsForBusiness(businessId);
+    },
+    enabled: !!businessId,
   });
 };
