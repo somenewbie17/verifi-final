@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { businessesRepo } from '@/src/db/repositories/businesses.repo';
+import { businessesRepo } from '@/api/repositories/businesses.repo';
 
 export const useSearchBusinesses = (query: string) => {
   return useQuery({

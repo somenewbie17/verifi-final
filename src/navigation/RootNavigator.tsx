@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useTheme } from '@/src/hooks/useTheme';
-import { initDatabase } from '@/src/db/index';
 import { useAppStore } from '@/src/lib/store';
 
 import SplashScreen from '@/src/screens/SplashScreen';
@@ -12,26 +11,27 @@ import BusinessScreen from '@/src/screens/BusinessScreen';
 import ReviewScreen from '@/src/screens/ReviewScreen';
 import MapScreen from '@/src/screens/MapScreen';
 import PricingScreen from '@/src/screens/PricingScreen';
-import RoleSelectionScreen from '@/src/screens/RoleSelectionScreen'; // 1. Import
-import SignUpScreen from '@/src/screens/SignUpScreen';           // 2. Import
+import RoleSelectionScreen from '@/src/screens/RoleSelectionScreen';
+import SignUpScreen from '@/src/screens/SignUpScreen';
 
 const Stack = createStackNavigator();
 
 export default function RootNavigator() {
   const { theme } = useTheme();
-  const [dbLoaded, setDbLoaded] = useState(false);
   
   const user = useAppStore((state) => state.user);
+  // We no longer need a delay for the database, so we can simplify the loading state.
+  // This state is now managed by the AuthProvider.
   const [loading, setLoading] = useState(true);
 
+  // The useEffect that called `initDatabase` has been removed.
+  // We now rely on the AuthProvider to tell us when authentication is ready.
   useEffect(() => {
-    const initialize = async () => {
-      await initDatabase();
-      setDbLoaded(true);
-      setTimeout(() => setLoading(false), 500);
-    }
-    initialize().catch(console.error);
-  }, []);
+    // A small timeout to prevent the splash screen from flashing too quickly.
+    const timer = setTimeout(() => setLoading(false), 500); 
+    return () => clearTimeout(timer);
+  }, [user]); // The loading state can react to user changes if needed.
+
 
   const navigationTheme = {
     dark: theme.dark,
@@ -45,7 +45,8 @@ export default function RootNavigator() {
     },
   };
   
-  if (loading || !dbLoaded) {
+  // The check for `dbLoaded` has been removed.
+  if (loading) {
     return <SplashScreen />;
   }
 
@@ -75,7 +76,6 @@ export default function RootNavigator() {
         ) : (
           <>
             <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }}/>
-            {/* 3. Add the new screens to the stack */}
             <Stack.Screen name="RoleSelection" component={RoleSelectionScreen} options={{ title: 'Create Account' }} />
             <Stack.Screen name="SignUp" component={SignUpScreen} options={{ title: '' }} />
           </>

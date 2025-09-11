@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { reviewsRepo } from '@/src/db/repositories/reviews.repo';
+import { reviewsRepo } from '@/api/repositories/reviews.repo';
 import { Review } from '@/types';
 
 /**

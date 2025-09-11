@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { promosRepo } from '@/src/db/repositories/promos.repo';
+import { promosRepo } from '@/api/repositories/promos.repo';
 
 /**
  * A custom hook to fetch all active promotions.
