@@ -1,6 +1,6 @@
 import { supabase } from '@/src/lib/supabaseClient';
 import * as FileSystem from 'expo-file-system';
-import { decode } from 'base64-js';
+import { toByteArray } from 'base64-js';
 
 // This function takes a file URI from the image picker, converts it to a format
 // Supabase can handle, and uploads it to your 'review_photos' bucket.
@@ -17,7 +17,7 @@ export const storageRepo = {
 
       const { data, error } = await supabase.storage
         .from('review_photos')
-        .upload(fileName, decode(base64), { contentType });
+        .upload(fileName, toByteArray(base64), { contentType });
 
       if (error) {
         throw error;

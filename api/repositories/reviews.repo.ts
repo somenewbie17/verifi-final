@@ -1,9 +1,7 @@
 import { supabase } from '@/src/lib/supabaseClient';
 import { Review } from '@/types';
-import { Database } from '@/types/supabase'; // Import the main Database type
+import { Database } from '@/types/supabase';
 
-// This is the specific type for creating a NEW review. Notice it comes from the auto-generated file.
-// It correctly knows that 'id' and 'created_at' are not needed for an insert.
 type ReviewInsert = Database['public']['Tables']['reviews']['Insert'];
 
 export const reviewsRepo = {
@@ -22,10 +20,8 @@ export const reviewsRepo = {
     return (data as any) || [];
   },
 
-  // The function now accepts the specific `ReviewInsert` type.
   async createReview(review: ReviewInsert): Promise<void> {
     const { error } = await supabase.from('reviews').insert(review);
-
     if (error) {
       console.error('Error creating review:', error.message);
       throw error;

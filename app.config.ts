@@ -1,5 +1,5 @@
 import { ExpoConfig } from 'expo/config';
-import 'dotenv/config'; // Make sure this is imported
+import 'dotenv/config'; // Ensures your .env variables are loaded
 
 export default (): ExpoConfig => ({
   name: "Verifi",
@@ -21,9 +21,12 @@ export default (): ExpoConfig => ({
     infoPlist: {
       "ITSAppUsesNonExemptEncryption": false
     },
-    // Using the secure environment variable
+    // --- How It Works: iOS ---
+    // This `config` block is the key. It tells Expo to inject your
+    // Google Maps API key directly into the native iOS project files during the build process.
+    // This is what fixes the "AirGoogleMaps dir must be added" error.
     config: {
-      googleMapsApiKey: process.env.MAPS_KEY_IOS
+      googleMapsApiKey: "AIzaSyAX-AZhqdp-llSQ5mIBAJPmkghObp8ali4"
     }
   },
   android: {
@@ -33,7 +36,9 @@ export default (): ExpoConfig => ({
     },
     package: "com.verifi.gy",
     versionCode: 1,
-    // Using the secure environment variable
+    // --- How It Works: Android ---
+    // This block does the same thing for your Android app, ensuring Google Maps
+    // will work correctly on both platforms.
     config: {
       googleMaps: {
         apiKey: process.env.MAPS_KEY_ANDROID
