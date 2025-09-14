@@ -1,46 +1,36 @@
-import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Image, ImageStyle } from 'expo-image';
-import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '@/src/hooks/useTheme';
+import React, { useState, useEffect } from 'react';
+import { Image, ImageStyle, StyleProp, StyleSheet } from 'react-native';
 
-interface ImageWithFallbackProps {
-  uri: string | undefined | null;
-  style: ImageStyle;
-}
+// Local asset for the fallback image
+const placeholder = require('@/assets/icon.png');
 
-const ImageWithFallback: React.FC<ImageWithFallbackProps> = ({ uri, style }) => {
-  const { theme } = useTheme();
+type ImageWithFallbackProps = {
+  uri: string | null | undefined;
+  // THIS IS THE FIX: Use StyleProp<ImageStyle> to allow style arrays
+  style: StyleProp<ImageStyle>;
+};
+
+export default function ImageWithFallback({ uri, style }: ImageWithFallbackProps) {
+  const [imageSrc, setImageSrc] = useState<any>(placeholder);
   const [hasError, setHasError] = useState(false);
 
-  const onError = () => {
-    setHasError(true);
-  };
+  useEffect(() => {
+    // Reset error state when URI changes
+    setHasError(false);
+  }, [uri]);
 
-  if (hasError || !uri) {
-    return (
-      <View style={[styles.fallbackContainer, style, { backgroundColor: theme.colors.border }]}>
-        <Ionicons name="image-outline" size={32} color={theme.colors.textSecondary} />
-      </View>
-    );
-  }
+  const handleError = () => {
+    if (!hasError) {
+      setImageSrc(placeholder);
+      setHasError(true);
+    }
+  };
 
   return (
     <Image
-      source={{ uri }}
+      source={hasError || !uri ? placeholder : { uri }}
       style={style}
-      contentFit="cover"
-      transition={300}
-      onError={onError}
+      onError={handleError}
     />
   );
-};
-
-const styles = StyleSheet.create({
-  fallbackContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
-
-export default ImageWithFallback;
+}

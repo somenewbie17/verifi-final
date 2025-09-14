@@ -1,9 +1,7 @@
 import { Json } from './supabase';
 
-// Exported UserRole type
 export type UserRole = 'customer' | 'business_owner' | 'admin';
 
-// Exported User interface
 export interface User {
   id: string;
   email: string;
@@ -13,25 +11,26 @@ export interface User {
   phone?: string;
 }
 
-// Exported Business interface
+// THIS IS THE MAIN FIX for the promos.ts error.
+// We are making several fields optional to match the partial data
+// that comes back from a nested query.
 export interface Business {
   id: string;
   name: string;
-  description: string | null;
+  description?: string | null; // Made optional
   address: string | null;
   city: string | null;
   phone: string | null;
   whatsapp: string | null;
-  email: string | null;
-  website: string | null;
+  email?: string | null;      // Made optional
+  website?: string | null;     // Made optional
   photos: string[];
   categories: string[];
-  owner_id: string;
+  owner_id?: string;         // Made optional
   verified: boolean;
   created_at: string;
 }
 
-// Exported Review interface with corrected 'photos' type
 export interface Review {
   id: string;
   business_id: string;
@@ -47,17 +46,15 @@ export interface Review {
   } | null;
 }
 
-// Exported Promo interface with corrected 'active' property
 export interface Promo {
   id: string;
   title: string;
   desc: string | null;
   starts_at: string;
   ends_at: string;
-  active: boolean | null; // Corrected from 'status'
+  active: boolean | null;
   business_id: string | null;
   businesses: Business | null;
 }
 
-// Exported Category type
 export type Category = 'Food' | 'Salons' | 'Barbers' | 'Auto' | 'Hotels' | 'Services';

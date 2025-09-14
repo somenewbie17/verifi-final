@@ -9,8 +9,6 @@ import ImageWithFallback from './ImageWithFallback';
 
 const ReviewCard = ({ review }: { review: Review }) => {
   const { theme } = useTheme();
-  // This check now works perfectly with our updated Review type
-  const hasPhoto = review.photos && review.photos.length > 0;
 
   return (
     <Card style={{ marginBottom: theme.spacing.m }}>
@@ -26,8 +24,10 @@ const ReviewCard = ({ review }: { review: Review }) => {
         </Text>
       )}
 
-      {/* If a photo exists, we can now safely access review.photos[0] */}
-      {hasPhoto && (
+      {/* THIS IS THE FIX: By checking review.photos directly inside the JSX, 
+        TypeScript knows it cannot be null in this block. 
+      */}
+      {review.photos && review.photos.length > 0 && (
         <ImageWithFallback
           uri={review.photos[0]}
           style={[styles.reviewImage, { borderRadius: theme.radii.m }]}
@@ -45,6 +45,7 @@ const styles = StyleSheet.create({
   },
   reviewText: {
     marginTop: 8,
+    color: '#333',
   },
   reviewImage: {
     width: '100%',
