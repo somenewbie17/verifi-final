@@ -12,7 +12,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import Button from '@/components/Button';
 import Card from '@/src/components/ui/Card';
-import { useNavigation } from '@react-navigation/native';
+// 1. Import useRouter from Expo Router
+import { useRouter } from 'expo-router';
 import ImageWithFallback from '@/src/components/ui/ImageWithFallback';
 import { useSearchBusinesses } from '@/api/queries/businesses';
 import { useDebounce } from '@/src/hooks/useDebounce';
@@ -21,7 +22,8 @@ import { Business } from '@/types';
 
 export default function SearchScreen() {
   const { theme } = useTheme();
-  const navigation = useNavigation<any>();
+  // 2. Use the useRouter hook
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
 
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
@@ -33,9 +35,8 @@ export default function SearchScreen() {
   } = useSearchBusinesses(debouncedSearchQuery);
 
   const renderBusinessCard = ({ item }: { item: Business }) => (
-    <Pressable
-      onPress={() => navigation.navigate('Business', { businessId: item.id })}
-    >
+    // 3. Update the business card navigation
+    <Pressable onPress={() => router.push(`/business/${item.id}`)}>
       <Card style={{ marginBottom: theme.spacing.m }}>
         <ImageWithFallback
           uri={item.photos[0]}
@@ -80,9 +81,10 @@ export default function SearchScreen() {
             autoFocus={true}
           />
         </View>
+        {/* 4. Update the "View on Map" button navigation */}
         <Button
           title="View on Map"
-          onPress={() => navigation.navigate('Map')}
+          onPress={() => router.push('/map')}
           variant="primary"
           style={{ marginTop: 16 }}
         />
@@ -118,6 +120,7 @@ export default function SearchScreen() {
   );
 }
 
+// Styles remain the same
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: {

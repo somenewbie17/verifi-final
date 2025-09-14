@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Pressable } from 'react-native';
-import { Link } from 'expo-router'; // Import Link from expo-router
+import { Link } from 'expo-router';
 import { Business } from '@/types';
 import { useTheme } from '@/src/hooks/useTheme';
 import ImageWithFallback from './ImageWithFallback';
@@ -12,9 +12,8 @@ const BusinessCard = ({ business }: { business: Business }) => {
   const { theme } = useTheme();
   const hasPhoto = business.photos && Array.isArray(business.photos) && business.photos.length > 0;
 
-  // Wrap the entire card in a Link component that navigates to the correct business page
   return (
-    <Link href={`/business/${business.id}`} asChild>
+    <Link href={`/business/${business.id}`}>
       <Pressable>
         <Card style={{ marginBottom: theme.spacing.m }}>
           {hasPhoto && (

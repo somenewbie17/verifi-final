@@ -1,146 +1,80 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable, Alert, Image } from 'react-native';
+import React from 'react';
+import { View, Text, ScrollView, Linking } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '@/src/hooks/useTheme';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useBusinessById } from '@/api/queries/businesses';
+import { useReviewsForBusiness } from '@/api/queries/reviews';
+import ImageWithFallback from '@/src/components/ui/ImageWithFallback';
+import VerifiedBadge from '@/src/components/ui/VerifiedBadge';
+import Rating from '@/src/components/ui/Rating';
+import ReviewCard from '@/src/components/ui/ReviewCard';
 import Button from '@/components/Button';
 import { Ionicons } from '@expo/vector-icons';
-import { useCreateReview } from '@/api/queries/reviews';
-import { useAppStore } from '@/src/lib/store';
-import * as ImagePicker from 'expo-image-picker';
+import useWhatsApp from '@/src/hooks/useWhatsApp';
+import { Review } from '@/types';
 
-type ReviewScreenRouteProp = RouteProp<{ params: { businessId: string } }, 'params'>;
-
-export default function ReviewScreen() {
+export default function BusinessScreen() {
   const { theme } = useTheme();
-  const navigation = useNavigation();
-  const route = useRoute<ReviewScreenRouteProp>();
-  const { businessId } = route.params;
-  const user = useAppStore((state) => state.user);
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
+  const { openWhatsApp } = useWhatsApp();
 
-  const [rating, setRating] = useState(0);
-  const [comment, setComment] = useState('');
-  const [imageUri, setImageUri] = useState<string | null>(null);
+  const { data: business } = useBusinessById(id);
+  const { data: reviews } = useReviewsForBusiness(id);
 
-  const createReviewMutation = useCreateReview();
-
-  const handlePickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 0.5,
-    });
-
-    if (!result.canceled) {
-      setImageUri(result.assets[0].uri);
-    }
-  };
-
-  const handleSubmit = () => {
-    if (rating === 0 || !user) {
-      return Alert.alert('Error', 'Please provide a rating and be logged in.');
-    }
-
-    const newReview = {
-      business_id: businessId,
-      user_id: user.id,
-      rating: rating,
-      text: comment,
-      photoUri: imageUri ?? undefined,
-    };
-
-    createReviewMutation.mutate(newReview, {
-      onSuccess: () => {
-        Alert.alert('Thank You!', 'Your review has been submitted.', [
-          { text: 'OK', onPress: () => navigation.goBack() },
-        ]);
-      },
-      onError: (e) => {
-        console.error(e);
-        Alert.alert('Error', 'Could not submit your review.');
-      },
-    });
-  };
+  if (!business) return <Text>Loading...</Text>;
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <View style={styles.header}>
-        <Text style={[theme.typography.h2, { color: theme.colors.text }]}>Leave a Review</Text>
-        <Pressable onPress={() => navigation.goBack()}>
-          <Ionicons name="close-circle" size={30} color={theme.colors.textSecondary} />
-        </Pressable>
-      </View>
+    <ScrollView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <ImageWithFallback
+        uri={business.photos?.[0]}
+        style={{ width: '100%', height: 250 }}
+      />
+      <View style={{ padding: theme.spacing.l }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Text style={[theme.typography.h1, { color: theme.colors.text, flex: 1 }]}>{business.name}</Text>
+          {business.verified && <VerifiedBadge size={24} />}
+        </View>
+        <Text style={[theme.typography.body, { color: theme.colors.textSecondary, marginTop: 4 }]}>
+          {business.address}, {business.city}
+        </Text>
+        <View style={{ marginVertical: theme.spacing.m }}>
+          <Rating rating={4} />
+        </View>
 
-      <Text style={[styles.label, { color: theme.colors.textSecondary }]}>YOUR RATING</Text>
-      <View style={styles.starsContainer}>
-        {[1, 2, 3, 4, 5].map((star) => (
-          <Pressable key={star} onPress={() => setRating(star)}>
-            <Ionicons
-              name={star <= rating ? 'star' : 'star-outline'}
-              size={40}
-              color={theme.colors.accent}
-              style={{ marginHorizontal: theme.spacing.s }}
+        <View style={{ flexDirection: 'row', gap: theme.spacing.m }}>
+          {business.phone && (
+            <Button
+              title="Call"
+              onPress={() => Linking.openURL(`tel:${business.phone}`)}
+              style={{ flex: 1 }}
             />
-          </Pressable>
-        ))}
+          )}
+          {business.whatsapp && (
+            <Button
+              title="WhatsApp"
+              onPress={() => openWhatsApp(business.whatsapp || '', 'Hello, I have a question.')}
+              variant="secondary"
+              style={{ flex: 1 }}
+            />
+          )}
+        </View>
+
+        <View style={{ marginTop: theme.spacing.xl }}>
+          <Text style={[theme.typography.h3, { color: theme.colors.text, marginBottom: theme.spacing.m }]}>
+            Reviews
+          </Text>
+          {reviews?.map((review: Review) => (
+            <ReviewCard key={review.id} review={review} />
+          ))}
+          <Button
+            title="Leave a Review"
+            onPress={() => router.push(`/review/${id}`)}
+            variant="outline"
+            style={{ marginTop: theme.spacing.m }}
+          />
+        </View>
       </View>
-
-      <Text style={[styles.label, { color: theme.colors.textSecondary }]}>YOUR COMMENT (OPTIONAL)</Text>
-      <TextInput
-        style={[
-          styles.input,
-          {
-            backgroundColor: theme.colors.card,
-            color: theme.colors.text,
-            borderColor: theme.colors.border,
-          },
-        ]}
-        placeholder="Tell us about your experience..."
-        placeholderTextColor={theme.colors.textSecondary}
-        value={comment}
-        onChangeText={setComment}
-        multiline
-      />
-
-      <Button title="Add Photo" onPress={handlePickImage} variant="secondary" style={{ marginTop: 16 }} />
-      {imageUri && <Image source={{ uri: imageUri }} style={styles.imagePreview} />}
-
-      <View style={{ flex: 1 }} />
-      <Button
-        title="Submit Review"
-        variant="primary"
-        onPress={handleSubmit}
-        loading={createReviewMutation.isPending}
-      />
-    </SafeAreaView>
+    </ScrollView>
   );
 }
-
-// --- THIS PART WAS MISSING ---
-const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24 },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 32,
-  },
-  label: { fontWeight: '600', marginBottom: 12 },
-  starsContainer: { flexDirection: 'row', justifyContent: 'center', marginBottom: 32 },
-  input: {
-    height: 150,
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    textAlignVertical: 'top',
-  },
-  imagePreview: {
-    width: 100,
-    height: 100,
-    borderRadius: 8,
-    marginTop: 16,
-    alignSelf: 'center',
-  },
-});

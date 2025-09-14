@@ -4,113 +4,90 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TextInput,
   Pressable,
   ActivityIndicator,
+  FlatList,
 } from 'react-native';
 import { useTheme } from '@/src/hooks/useTheme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, Ionicons } from '@expo/vector-icons';
-import { Category, Promo } from '@/types';
-import Card from '@/src/components/ui/Card';
-import Chip from '@/src/components/ui/Chip';
-import { useNavigation } from '@react-navigation/native';
-import PromoBadge from '@/src/components/ui/PromoBadge';
+import { useRouter } from 'expo-router';
 import { useActivePromos } from '@/api/queries/promos';
+import BusinessCard from '@/src/components/ui/BusinessCard'; // We'll use the existing BusinessCard
+import { Category } from '@/types';
 
 const CATEGORIES: Category[] = [
   'Food', 'Salons', 'Barbers', 'Auto', 'Hotels', 'Services',
 ];
 
+// A new, styled component for category chips.
+const CategoryChip = ({ category }: { category: string }) => {
+  const { theme } = useTheme();
+  return (
+    <Pressable style={[styles.chipContainer, { backgroundColor: theme.colors.card }]}>
+      <Text style={[styles.chipText, { color: theme.colors.text }]}>{category}</Text>
+    </Pressable>
+  );
+};
+
 export default function HomeScreen() {
   const { theme } = useTheme();
-  const navigation = useNavigation<any>();
-
-  // 1. We call our custom hook to fetch live promo data from Supabase.
-  // The MOCK_PROMOS array is now completely gone.
+  const router = useRouter();
   const { data: promos, isLoading } = useActivePromos();
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
-      edges={['top']}
-    >
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['top']}>
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
       >
+        {/* --- Header Section --- */}
         <View style={styles.header}>
           <Text style={[theme.typography.h1, { color: theme.colors.text }]}>Discover</Text>
-          <Text style={[theme.typography.h1, { color: theme.colors.textSecondary }]}>Guyana</Text>
+          <Text style={[theme.typography.h1, { color: theme.colors.primary }]}>Guyana</Text>
         </View>
 
-        <Pressable onPress={() => navigation.navigate('Search')}>
-          <View
-            style={[
-              styles.searchContainer,
-              theme.shadows.medium,
-              { backgroundColor: theme.colors.card },
-            ]}
-          >
+        {/* --- Search Bar --- */}
+        <Pressable onPress={() => router.push('/search')} style={styles.searchPressable}>
+          <View style={[styles.searchContainer, { backgroundColor: theme.colors.card }]}>
             <Feather name="search" size={20} color={theme.colors.textSecondary} />
-            <TextInput
-              placeholder="What are you looking for?"
-              placeholderTextColor={theme.colors.textSecondary}
-              style={[styles.searchInput, { color: theme.colors.text }]}
-              editable={false}
-              pointerEvents="none"
-            />
+            <Text style={[styles.searchInput, { color: theme.colors.textSecondary }]}>
+              What are you looking for?
+            </Text>
           </View>
         </Pressable>
 
+        {/* --- Categories Section --- */}
         <View style={styles.section}>
           <Text style={[theme.typography.h3, { color: theme.colors.text, marginBottom: theme.spacing.m }]}>
             Categories
           </Text>
-          <ScrollView
+          <FlatList
+            data={CATEGORIES}
+            renderItem={({ item }) => <CategoryChip category={item} />}
+            keyExtractor={(item) => item}
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ gap: theme.spacing.s }}
-          >
-            {CATEGORIES.map((category) => (
-              <Chip key={category} label={category} onPress={() => navigation.navigate('Search')} />
-            ))}
-          </ScrollView>
+          />
         </View>
 
+        {/* --- Today's Deals Section (Renamed to Featured) --- */}
         <View style={styles.section}>
           <Text style={[theme.typography.h3, { color: theme.colors.text, marginBottom: theme.spacing.m }]}>
-            Today’s Deals
+            Featured Today
           </Text>
-          {/* 2. We now handle the loading state from the database call. */}
           {isLoading ? (
             <ActivityIndicator color={theme.colors.primary} style={{ marginTop: 20 }} />
           ) : (
             promos?.map((promo) => (
-              <Pressable
-                key={promo.id}
-                onPress={() =>
-                  navigation.navigate('Business', {
-                    businessId: promo.business_id,
-                  })
-                }
-              >
-                <Card style={{ marginBottom: theme.spacing.m }}>
-                  <View style={styles.promoCard}>
-                    <Ionicons name="pricetag-outline" size={24} color={theme.colors.primary} />
-                    <View style={{ flex: 1 }}>
-                      <Text style={[theme.typography.bodyBold, { color: theme.colors.text }]}>
-                        {promo.title}
-                      </Text>
-                      {/* 3. We access the business name from the nested object */}
-                      <Text style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>
-                        {promo.businesses?.name}
-                      </Text>
-                    </View>
-                    <PromoBadge text="ACTIVE" />
-                  </View>
-                </Card>
-              </Pressable>
+              // Here we use the existing BusinessCard for a consistent look.
+              // Assuming a promo has a related business object.
+              promo.businesses ? (
+                <BusinessCard
+                  key={promo.id}
+                  business={promo.businesses}
+                />
+              ) : null
             ))
           )}
         </View>
@@ -119,6 +96,7 @@ export default function HomeScreen() {
   );
 }
 
+// --- NEW STYLES ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -127,14 +105,22 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   header: {
-    marginBottom: 16,
+    marginBottom: 24,
+  },
+  searchPressable: {
+    marginBottom: 24,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 18,
+    borderRadius: 12,
     paddingHorizontal: 16,
-    height: 54,
+    height: 50,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   searchInput: {
     flex: 1,
@@ -142,11 +128,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   section: {
-    marginTop: 32,
+    marginTop: 16,
+    marginBottom: 16,
   },
-  promoCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
+  chipContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#eee' // A subtle border
+  },
+  chipText: {
+    fontWeight: '600',
   },
 });
