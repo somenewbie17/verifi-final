@@ -12,7 +12,6 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-  [GMSServices provideAPIKey:@"AIzaSyAX-AZhqdp-llSQ5mIBAJPmkghObp8ali4"];
 // @generated begin react-native-maps-init - expo prebuild (DO NOT MODIFY) sync-a57ef70a43bd08ddf7dbad5026acf1b82f601b8f
 #if __has_include(<GoogleMaps/GoogleMaps.h>)
   [GMSServices provideAPIKey:@"AIzaSyAX-AZhqdp-llSQ5mIBAJPmkghObp8ali4"];

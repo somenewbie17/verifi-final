@@ -2,8 +2,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { reviewsRepo } from '@/api/repositories/reviews.repo';
 import { Database } from '@/types/supabase';
 
-// This is the specific type for creating a NEW review. It comes from the
-// auto-generated `supabase.d.ts` file and is the correct type for inserts.
 type ReviewInsert = Database['public']['Tables']['reviews']['Insert'];
 
 /**
@@ -23,21 +21,23 @@ export const useReviewsForBusiness = (businessId: string | undefined) => {
 
 /**
  * A custom hook for creating a new review.
- * It uses `useMutation` for actions that change data.
  */
 export const useCreateReview = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    // The mutation function now expects an object of type `ReviewInsert`.
-    mutationFn: (newReview: ReviewInsert) => {
+    // THIS IS THE FIX: We define the input type to match the stricter requirements
+    // of the `createReview` function, rather than the flexible `ReviewInsert` type.
+    mutationFn: (newReview: {
+      business_id: string;
+      user_id: string;
+      rating: number;
+      text: string;
+      photoUri?: string;
+    }) => {
       return reviewsRepo.createReview(newReview);
     },
-    // The `onSuccess` function runs after the mutation is successful.
     onSuccess: (_, variables) => {
-      // This tells react-query to refetch the data for both the approved reviews
-      // on the BusinessScreen and the pending reviews on the Dashboard, ensuring
-      // the UI updates automatically after a new review is submitted.
       queryClient.invalidateQueries({
         queryKey: ['reviews', variables.business_id],
       });

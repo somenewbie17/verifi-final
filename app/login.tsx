@@ -4,12 +4,12 @@ import { useAuth } from '@/api/auth';
 import { useTheme } from '@/src/hooks/useTheme';
 import Button from '@/components/Button';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+// Import the new router from Expo Router
+import { router, Href } from 'expo-router';
 
 export default function LoginScreen() {
   const { theme } = useTheme();
   const { login } = useAuth();
-  const navigation = useNavigation<any>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -28,7 +28,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={[styles.container, { backgroundColor: theme.colors.background }]}
     >
@@ -40,10 +40,10 @@ export default function LoginScreen() {
         </Text>
 
         <TextInput
-          style={[styles.input, { 
-            backgroundColor: theme.colors.card, 
-            color: theme.colors.text, 
-            borderColor: theme.colors.border 
+          style={[styles.input, {
+            backgroundColor: theme.colors.card,
+            color: theme.colors.text,
+            borderColor: theme.colors.border
           }]}
           placeholder="Email Address"
           placeholderTextColor={theme.colors.textSecondary}
@@ -53,10 +53,10 @@ export default function LoginScreen() {
           autoCapitalize="none"
         />
         <TextInput
-          style={[styles.input, { 
-            backgroundColor: theme.colors.card, 
-            color: theme.colors.text, 
-            borderColor: theme.colors.border 
+          style={[styles.input, {
+            backgroundColor: theme.colors.card,
+            color: theme.colors.text,
+            borderColor: theme.colors.border
           }]}
           placeholder="Password"
           placeholderTextColor={theme.colors.textSecondary}
@@ -76,7 +76,8 @@ export default function LoginScreen() {
             Forgot Password?
           </Text>
         </Pressable>
-        <Pressable onPress={() => navigation.navigate('RoleSelection')}>
+        {/* THIS IS THE FIX: We tell TypeScript to trust this path. */}
+        <Pressable onPress={() => router.push('/(auth)/role-selection' as Href<string>)}>
           <Text style={[styles.link, { color: theme.colors.textSecondary, marginTop: theme.spacing.xl }]}>
             Don't have an account? <Text style={{color: theme.colors.primary, fontWeight: 'bold'}}>Sign Up</Text>
           </Text>

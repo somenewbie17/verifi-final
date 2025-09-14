@@ -1,27 +1,20 @@
-// App.tsx
-
-import 'react-native-gesture-handler';
-import React from 'react';
-import { registerRootComponent } from 'expo';
+import 'react-native-url-polyfill/auto';
 import { QueryClientProvider } from '@tanstack/react-query';
-
-// --- Import your custom code ---
 import { ThemeProvider } from './src/hooks/useTheme';
-import queryClient from "./src/lib/queryClient"
-import RootNavigator from './src/navigation/RootNavigator';
-import { AuthProvider } from './api/auth'; // 1. ADD THIS IMPORT
+import queryClient from './src/lib/queryClient';
+import { Slot } from 'expo-router';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { StatusBar } from 'expo-status-bar';
 
-function App() {
+export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        {/* 2. ADD THE AUTH PROVIDER WRAPPER */}
-        <AuthProvider>
-          <RootNavigator />
-        </AuthProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <StatusBar style="auto" />
+          <Slot />
+        </ThemeProvider>
+      </QueryClientProvider>
+    </GestureHandlerRootView>
   );
 }
-
-registerRootComponent(App);

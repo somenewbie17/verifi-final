@@ -8,10 +8,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useCreateReview } from '@/api/queries/reviews';
 import { useAppStore } from '@/src/lib/store';
 import * as ImagePicker from 'expo-image-picker';
-import { storageRepo } from '@/api/repositories/storage.repo';
-import { Database } from '@/types/supabase';
-
-type ReviewInsert = Database['public']['Tables']['reviews']['Insert'];
 
 type ReviewScreenRouteProp = RouteProp<{ params: { businessId: string } }, 'params'>;
 
@@ -41,22 +37,17 @@ export default function ReviewScreen() {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (rating === 0 || !user) {
       return Alert.alert('Error', 'Please provide a rating and be logged in.');
     }
 
-    let photoUrl: string | null = null;
-    if (imageUri) {
-      photoUrl = await storageRepo.uploadReviewImage(imageUri, user.id);
-    }
-    
-    const newReview: ReviewInsert = {
+    const newReview = {
       business_id: businessId,
       user_id: user.id,
       rating: rating,
-      text: comment || null,
-      photos: photoUrl ? [photoUrl] : [],
+      text: comment,
+      photoUri: imageUri ?? undefined,
     };
 
     createReviewMutation.mutate(newReview, {
@@ -70,9 +61,8 @@ export default function ReviewScreen() {
         Alert.alert('Error', 'Could not submit your review.');
       },
     });
-  }; // <-- This closing brace was missing
+  };
 
-  // --- THIS ENTIRE RETURN STATEMENT WAS MISSING ---
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <View style={styles.header}>
@@ -98,11 +88,14 @@ export default function ReviewScreen() {
 
       <Text style={[styles.label, { color: theme.colors.textSecondary }]}>YOUR COMMENT (OPTIONAL)</Text>
       <TextInput
-        style={[styles.input, { 
-          backgroundColor: theme.colors.card, 
-          color: theme.colors.text, 
-          borderColor: theme.colors.border 
-        }]}
+        style={[
+          styles.input,
+          {
+            backgroundColor: theme.colors.card,
+            color: theme.colors.text,
+            borderColor: theme.colors.border,
+          },
+        ]}
         placeholder="Tell us about your experience..."
         placeholderTextColor={theme.colors.textSecondary}
         value={comment}
@@ -110,28 +103,44 @@ export default function ReviewScreen() {
         multiline
       />
 
-      {/* UI for Image Picking */}
       <Button title="Add Photo" onPress={handlePickImage} variant="secondary" style={{ marginTop: 16 }} />
-      {imageUri && (
-        <Image source={{ uri: imageUri }} style={styles.imagePreview} />
-      )}
-      
+      {imageUri && <Image source={{ uri: imageUri }} style={styles.imagePreview} />}
+
       <View style={{ flex: 1 }} />
-      <Button 
-        title="Submit Review" 
-        variant="primary" 
-        onPress={handleSubmit} 
+      <Button
+        title="Submit Review"
+        variant="primary"
+        onPress={handleSubmit}
         loading={createReviewMutation.isPending}
       />
     </SafeAreaView>
   );
 }
 
+// --- THIS PART WAS MISSING ---
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 24 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 32,
+  },
   label: { fontWeight: '600', marginBottom: 12 },
   starsContainer: { flexDirection: 'row', justifyContent: 'center', marginBottom: 32 },
-  input: { height: 150, borderWidth: 1, borderRadius: 12, padding: 16, fontSize: 16, textAlignVertical: 'top' },
-  imagePreview: { width: 100, height: 100, borderRadius: 8, marginTop: 16, alignSelf: 'center' },
+  input: {
+    height: 150,
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    textAlignVertical: 'top',
+  },
+  imagePreview: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
+    marginTop: 16,
+    alignSelf: 'center',
+  },
 });
