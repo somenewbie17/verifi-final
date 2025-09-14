@@ -1,66 +1,49 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { useTheme } from '@/src/hooks/useTheme';
-import { useNavigation } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Pressable, Text, StyleSheet } from 'react-native';
+import { Link } from 'expo-router'; // Import Link from expo-router
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '@/src/hooks/useTheme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-interface NavbarProps {
-  title: string;
-  canGoBack?: boolean;
-}
-
-const Navbar: React.FC<NavbarProps> = ({ title, canGoBack = false }) => {
+export default function Navbar() {
   const { theme } = useTheme();
-  const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
 
   return (
-    <SafeAreaView 
-      edges={['top']} 
-      style={[styles.safeArea, { backgroundColor: theme.colors.card }]}
-    >
-      <View style={[styles.container, { borderBottomColor: theme.colors.border }]}>
-        {canGoBack && (
-          <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={28} color={theme.colors.primary} />
+    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
+      <Text style={[styles.logo, { color: theme.colors.text }]}>Verifi</Text>
+      <View style={styles.icons}>
+        {/* Use the Link component for navigation */}
+        <Link href="/(tabs)/search" asChild>
+          <Pressable>
+            <Ionicons name="search" size={24} color={theme.colors.text} style={styles.icon} />
           </Pressable>
-        )}
-        <Text style={[theme.typography.h3, styles.title, { color: theme.colors.text }]}>
-          {title}
-        </Text>
-        <View style={styles.rightAction} />
+        </Link>
+        <Pressable onPress={() => console.log('Notifications pressed')}>
+          <Ionicons name="notifications-outline" size={24} color={theme.colors.text} style={styles.icon} />
+        </Pressable>
       </View>
-    </SafeAreaView>
+    </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  safeArea: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 3,
-  },
   container: {
-    height: 60,
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 10,
     borderBottomWidth: 1,
   },
-  title: {
-    textAlign: 'center',
+  logo: {
+    fontSize: 24,
+    fontWeight: 'bold',
   },
-  backButton: {
-    position: 'absolute',
-    left: 16,
-    zIndex: 1,
+  icons: {
+    flexDirection: 'row',
   },
-  rightAction: {
-    width: 28, // to balance the back button
+  icon: {
+    marginLeft: 20,
   },
 });
-
-export default Navbar;
