@@ -1,44 +1,56 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '@/src/hooks/useTheme';
 import { Review } from '@/types';
 import Card from '@/src/components/ui/Card';
 import Rating from '@/src/components/ui/Rating';
 import { formatDate } from '@/utils/formatDate';
-import ImageWithFallback from './ImageWithFallback'; // Import the image component
+import ImageWithFallback from './ImageWithFallback';
 
 const ReviewCard = ({ review }: { review: Review }) => {
   const { theme } = useTheme();
-  const hasPhoto = review.photos && Array.isArray(review.photos) && review.photos.length > 0;
+  // This check now works perfectly with our updated Review type
+  const hasPhoto = review.photos && review.photos.length > 0;
 
   return (
     <Card style={{ marginBottom: theme.spacing.m }}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+      <View style={styles.header}>
         <Rating rating={review.rating} />
         <Text style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>
           {formatDate(review.created_at)}
         </Text>
       </View>
-      {review.text ? (
-        <Text style={[theme.typography.body, { color: theme.colors.text, marginTop: theme.spacing.s }]}>
+      {review.text && (
+        <Text style={[theme.typography.body, styles.reviewText]}>
           {review.text}
         </Text>
-      ) : null}
+      )}
 
-      {/* This new block will display the image if it exists */}
+      {/* If a photo exists, we can now safely access review.photos[0] */}
       {hasPhoto && (
         <ImageWithFallback
           uri={review.photos[0]}
-          style={{
-            width: '100%',
-            height: 200,
-            borderRadius: theme.radii.m,
-            marginTop: theme.spacing.m,
-          }}
+          style={[styles.reviewImage, { borderRadius: theme.radii.m }]}
         />
       )}
     </Card>
   );
 };
+
+const styles = StyleSheet.create({
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  reviewText: {
+    marginTop: 8,
+  },
+  reviewImage: {
+    width: '100%',
+    height: 200,
+    marginTop: 12,
+  },
+});
 
 export default ReviewCard;

@@ -1,39 +1,56 @@
-import 'react-native-url-polyfill/auto';
+import React, { useEffect } from 'react';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { ThemeProvider } from '@/src/hooks/useTheme';
-import queryClient from '@/src/lib/queryClient';
-import { Stack } from 'expo-router';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { StatusBar } from 'expo-status-bar';
-import { AuthProvider } from '@/api/auth';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { AuthProvider, useAuth } from '../api/auth';
+import { ThemeProvider } from '../src/hooks/useTheme';
+import queryClient from '../src/lib/queryClient';
+import 'react-native-url-polyfill/auto';
+import Loading from '@/src/components/ui/Loading';
 
-export default function RootLayout() {
+// This is the core component that manages navigation based on auth state
+function RootLayoutNav() {
+  const { session, isLoading } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isLoading) return; // Wait until the session is loaded
+
+    const inAuthGroup = segments[0] === '(auth)';
+
+    if (session && inAuthGroup) {
+      // If the user is signed in and on an auth screen, redirect them away
+      router.replace('/(tabs)/home');
+    } else if (!session) {
+      // If the user is not signed in, redirect them to the login screen
+      router.replace('/login');
+    }
+  }, [session, isLoading, segments, router]);
+
+  if (isLoading) {
+    return <Loading />;
+  }
+
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <ThemeProvider>
-              <StatusBar style="auto" />
-              <Stack>
-                {/* Main app screens */}
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen name="business/[id]" options={{ title: 'Business Profile' }} />
-                <Stack.Screen name="review/[businessId]" options={{ title: 'Leave a Review', presentation: 'modal' }} />
-                
-                {/* Standalone screens */}
-                <Stack.Screen name="login" options={{ headerShown: false }} />
-                <Stack.Screen name="dashboard" options={{ title: 'Dashboard' }} />
-                <Stack.Screen name="pricing" options={{ title: 'Pricing', presentation: 'modal' }} />
+    <Stack>
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="login" options={{ headerShown: false }} />
+      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      <Stack.Screen name="business/[id]" options={{ headerShown: false }} />
+      <Stack.Screen name="review/[businessId]" options={{ presentation: 'modal', title: 'Leave a Review' }} />
+    </Stack>
+  );
+}
 
-                {/* Authentication flow screens */}
-                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-              </Stack>
-            </ThemeProvider>
-          </AuthProvider>
-        </QueryClientProvider>
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+// This is the main export that wraps the entire app in necessary providers
+export default function AppLayout() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <AuthProvider>
+          <RootLayoutNav />
+        </AuthProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
