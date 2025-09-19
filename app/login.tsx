@@ -1,19 +1,31 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Alert, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
 import { useAuth } from '@/api/auth';
-import { useTheme } from '@/src/hooks/useTheme';
-import Button from '@/components/Button';
-import { Ionicons } from '@expo/vector-icons';
-// Import the new router from Expo Router
-import { router, Href } from 'expo-router';
+import { Link } from 'expo-router';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 
 export default function LoginScreen() {
-  const { theme } = useTheme();
-  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
 
+  /**
+   * Handles the user login flow.
+   * When the login button is pressed, it sets a loading state.
+   * If the login is successful, the loading state remains true until the user is
+   * redirected by the root navigator, providing a better user experience.
+   * If the login fails, the loading state is set to false, and an error message is shown.
+   */
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert('Error', 'Please enter both email and password.');
@@ -23,65 +35,52 @@ export default function LoginScreen() {
     const { error } = await login(email, password);
     if (error) {
       Alert.alert('Login Failed', error.message);
+      setLoading(false); // Only stop loading if there's an error
     }
-    setLoading(false);
+    // On success, the loading state remains true. The screen will unmount
+    // upon redirection, so we don't need to set loading to false here.
   };
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
     >
-      <View style={styles.content}>
-        <Ionicons name="shield-checkmark" size={64} color={theme.colors.primary} />
-        <Text style={[styles.title, { color: theme.colors.text }]}>Welcome to Verifi</Text>
-        <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
-          The Check That Counts.
-        </Text>
-
+      <View style={styles.innerContainer}>
+        <Text style={styles.title}>Welcome Back!</Text>
+        <Text style={styles.subtitle}>Sign in to your account</Text>
         <TextInput
-          style={[styles.input, {
-            backgroundColor: theme.colors.card,
-            color: theme.colors.text,
-            borderColor: theme.colors.border
-          }]}
-          placeholder="Email Address"
-          placeholderTextColor={theme.colors.textSecondary}
+          style={styles.input}
+          placeholder="Email"
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
           autoCapitalize="none"
+          placeholderTextColor="#999"
         />
         <TextInput
-          style={[styles.input, {
-            backgroundColor: theme.colors.card,
-            color: theme.colors.text,
-            borderColor: theme.colors.border
-          }]}
+          style={styles.input}
           placeholder="Password"
-          placeholderTextColor={theme.colors.textSecondary}
           value={password}
           onChangeText={setPassword}
           secureTextEntry
+          placeholderTextColor="#999"
         />
-        <Button
-          title="Login"
-          onPress={handleLogin}
-          variant="primary"
-          loading={loading}
-          style={{ marginTop: theme.spacing.l }}
-        />
-        <Pressable onPress={() => Alert.alert('Forgot Password', 'Password recovery has not been implemented yet.')}>
-          <Text style={[styles.link, { color: theme.colors.accent, marginTop: theme.spacing.m }]}>
-            Forgot Password?
-          </Text>
-        </Pressable>
-        {/* THIS IS THE FIX: We tell TypeScript to trust this path. */}
-        <Pressable onPress={() => router.push('/(auth)/role-selection' as Href<string>)}>
-          <Text style={[styles.link, { color: theme.colors.textSecondary, marginTop: theme.spacing.xl }]}>
-            Don't have an account? <Text style={{color: theme.colors.primary, fontWeight: 'bold'}}>Sign Up</Text>
-          </Text>
-        </Pressable>
+        <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Login</Text>
+          )}
+        </TouchableOpacity>
+        <View style={styles.signupContainer}>
+          <Text style={styles.signupText}>Don't have an account?</Text>
+          <Link href="/sign-up" asChild>
+            <TouchableOpacity>
+              <Text style={styles.signupLink}> Sign Up</Text>
+            </TouchableOpacity>
+          </Link>
+        </View>
       </View>
     </KeyboardAvoidingView>
   );
@@ -90,33 +89,69 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#f5f5f5',
   },
-  content: {
+  innerContainer: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
+    padding: 20,
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    marginTop: 16,
+    textAlign: 'center',
+    marginBottom: 10,
+    color: '#333',
   },
   subtitle: {
     fontSize: 16,
-    marginBottom: 32,
+    textAlign: 'center',
+    marginBottom: 30,
+    color: 'gray',
   },
   input: {
-    width: '100%',
     height: 50,
+    borderColor: '#ddd',
     borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    marginBottom: 12,
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    marginBottom: 15,
+    backgroundColor: '#fff',
     fontSize: 16,
   },
-  link: {
-    fontSize: 14,
-    fontWeight: '500',
+  button: {
+    height: 50,
+    backgroundColor: '#007BFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 8,
+    marginTop: 10,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  signupContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 20,
+  },
+  signupText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  signupLink: {
+    fontSize: 16,
+    color: '#007BFF',
+    fontWeight: 'bold',
   },
 });

@@ -1,31 +1,44 @@
 import React, { useEffect } from 'react';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Stack, useRouter, usePathname } from 'expo-router';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider, useAuth } from '../api/auth';
-import { ThemeProvider } from '../src/hooks/useTheme';
-import queryClient from '../src/lib/queryClient';
+import { AuthProvider, useAuth } from '@/api/auth';
+import { ThemeProvider } from '@/src/hooks/useTheme';
+import queryClient from '@/src/lib/queryClient';
 import 'react-native-url-polyfill/auto';
 import Loading from '@/src/components/ui/Loading';
 
-// This is the core component that manages navigation based on auth state
 function RootLayoutNav() {
-  const { session, isLoading } = useAuth();
-  const segments = useSegments();
+  const { session, profile, isLoading } = useAuth();
+  const pathname = usePathname();
   const router = useRouter();
 
   useEffect(() => {
-    if (isLoading) return; // Wait until the session is loaded
+    if (isLoading) return;
 
-    const inAuthGroup = segments[0] === '(auth)';
+    const isRoleSelected = !!profile?.role;
 
-    if (session && inAuthGroup) {
-      // If the user is signed in and on an auth screen, redirect them away
-      router.replace('/(tabs)/home');
-    } else if (!session) {
-      // If the user is not signed in, redirect them to the login screen
+    // A user is logged in, but their role is not set in the database.
+    // This means they are a new user who needs to choose a role.
+    if (session && !isRoleSelected) {
+      // Don't redirect if they are already on the role selection screen
+      if (pathname !== '/(auth)/role-selection') {
+        router.replace('/(auth)/role-selection');
+      }
+      return;
+    }
+
+    const publicRoutes = ['/login', '/sign-up', '/verify-email'];
+    const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
+
+    if (session && isPublicRoute) {
+      // User is logged in and on a public auth page, send them to the correct dashboard.
+      const destination = profile?.role === 'business' ? '/(tabs)/dashboard' : '/(tabs)/home';
+      router.replace(destination);
+    } else if (!session && !isPublicRoute) {
+      // User is not logged in and not on a public page, send them to login.
       router.replace('/login');
     }
-  }, [session, isLoading, segments, router]);
+  }, [session, profile, isLoading, pathname]);
 
   if (isLoading) {
     return <Loading />;
@@ -35,14 +48,13 @@ function RootLayoutNav() {
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="login" options={{ headerShown: false }} />
-      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      <Stack.Screen name="(auth)" options={{ headerShown: false, presentation: 'modal' }} />
       <Stack.Screen name="business/[id]" options={{ headerShown: false }} />
       <Stack.Screen name="review/[businessId]" options={{ presentation: 'modal', title: 'Leave a Review' }} />
     </Stack>
   );
 }
 
-// This is the main export that wraps the entire app in necessary providers
 export default function AppLayout() {
   return (
     <QueryClientProvider client={queryClient}>

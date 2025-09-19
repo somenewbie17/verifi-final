@@ -9,10 +9,9 @@ import {
 } from 'react-native';
 import { useTheme } from '@/src/hooks/useTheme';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Feather } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import Button from '@/components/Button';
 import Card from '@/src/components/ui/Card';
-// 1. Import useRouter from Expo Router
 import { useRouter } from 'expo-router';
 import ImageWithFallback from '@/src/components/ui/ImageWithFallback';
 import { useSearchBusinesses } from '@/api/queries/businesses';
@@ -22,7 +21,6 @@ import { Business } from '@/types';
 
 export default function SearchScreen() {
   const { theme } = useTheme();
-  // 2. Use the useRouter hook
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -34,33 +32,40 @@ export default function SearchScreen() {
     isError,
   } = useSearchBusinesses(debouncedSearchQuery);
 
-  const renderBusinessCard = ({ item }: { item: Business }) => (
-    // 3. Update the business card navigation
-    <Pressable onPress={() => router.push(`/business/${item.id}`)}>
-      <Card style={{ marginBottom: theme.spacing.m }}>
-        <ImageWithFallback
-          uri={item.photos[0]}
-          style={{
-            height: 120,
-            width: '100%',
-            borderRadius: theme.radii.m,
-            marginBottom: theme.spacing.m,
-          }}
-        />
-        <Text style={[theme.typography.h3, { color: theme.colors.text }]}>
-          {item.name}
-        </Text>
-        <Text
-          style={[
-            theme.typography.caption,
-            { color: theme.colors.textSecondary, marginTop: theme.spacing.s },
-          ]}
-        >
-          {item.categories.join(', ')}
-        </Text>
-      </Card>
-    </Pressable>
-  );
+  const renderBusinessCard = ({ item }: { item: Business }) => {
+    // This check ensures we only try to render a photo if it exists.
+    const hasPhoto = item.photos && Array.isArray(item.photos) && item.photos.length > 0 && item.photos[0];
+
+    return (
+      <Pressable onPress={() => router.push(`/business/${item.id}`)}>
+        <Card style={{ marginBottom: theme.spacing.m, padding: 0, overflow: 'hidden' }}>
+          {hasPhoto ? (
+            <ImageWithFallback
+              uri={item.photos[0]}
+              style={styles.businessImage}
+            />
+          ) : (
+            <View style={[styles.placeholderContainer, { backgroundColor: theme.colors.border }]}>
+              <Ionicons name="business-outline" size={40} color={theme.colors.textSecondary} />
+            </View>
+          )}
+          <View style={{ padding: theme.spacing.m }}>
+            <Text style={[theme.typography.h3, { color: theme.colors.text }]}>
+              {item.name}
+            </Text>
+            <Text
+              style={[
+                theme.typography.caption,
+                { color: theme.colors.textSecondary, marginTop: theme.spacing.s },
+              ]}
+            >
+              {Array.isArray(item.categories) ? item.categories.join(', ') : ''}
+            </Text>
+          </View>
+        </Card>
+      </Pressable>
+    );
+  };
 
   return (
     <SafeAreaView
@@ -68,9 +73,7 @@ export default function SearchScreen() {
       edges={['top']}
     >
       <View style={styles.header}>
-        <View
-          style={[styles.searchContainer, { backgroundColor: theme.colors.card }]}
-        >
+        <View style={[styles.searchContainer, { backgroundColor: theme.colors.card }]}>
           <Feather name="search" size={20} color={theme.colors.textSecondary} />
           <TextInput
             placeholder="Search businesses or categories"
@@ -81,10 +84,9 @@ export default function SearchScreen() {
             autoFocus={true}
           />
         </View>
-        {/* 4. Update the "View on Map" button navigation */}
         <Button
           title="View on Map"
-          onPress={() => router.push('/map')}
+          onPress={() => router.push('/(tabs)/map')}
           variant="primary"
           style={{ marginTop: 16 }}
         />
@@ -120,7 +122,6 @@ export default function SearchScreen() {
   );
 }
 
-// Styles remain the same
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: {
@@ -140,5 +141,15 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  placeholderContainer: {
+    height: 120,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  businessImage: {
+    height: 120,
+    width: '100%',
   },
 });

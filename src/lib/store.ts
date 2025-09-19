@@ -1,23 +1,18 @@
 import { create } from 'zustand';
-import { Category, User } from '@/types'; // Import User type
+import { User } from '@supabase/supabase-js';
 
-interface AppState {
-  lastSelectedCategory: Category | null;
-  setLastSelectedCategory: (category: Category) => void;
-  // --- Use the imported User type ---
+// Define the shape of our state, now including the user's role
+export interface AppState {
   user: User | null;
+  role: 'customer' | 'business' | null; // The user can be one of these roles or null initially
   setUser: (user: User | null) => void;
+  setRole: (role: 'customer' | 'business' | null) => void; // A function to update the role
 }
 
-/**
- * A simple global state store for ephemeral UI state.
- */
+// Create the store with the new properties
 export const useAppStore = create<AppState>((set) => ({
-  // The initial state
-  lastSelectedCategory: null,
   user: null,
-
-  // Functions to update the state
-  setLastSelectedCategory: (category) => set({ lastSelectedCategory: category }),
+  role: null, // Start with a null role
   setUser: (user) => set({ user }),
+  setRole: (role) => set({ role }), // Implement the setRole function
 }));

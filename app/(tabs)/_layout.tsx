@@ -1,16 +1,19 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useAppStore } from '@/src/lib/store';
 import { useTheme } from '@/src/hooks/useTheme';
 
 export default function TabLayout() {
+  const { role } = useAppStore();
   const { theme } = useTheme();
+  const isBusiness = role === 'business';
 
   return (
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: theme.colors.primary,
-        tabBarInactiveTintColor: theme.colors.textSecondary,
+        tabBarInactiveTintColor: 'gray',
         tabBarStyle: {
           backgroundColor: theme.colors.card,
           borderTopColor: theme.colors.border,
@@ -18,17 +21,19 @@ export default function TabLayout() {
         headerStyle: {
           backgroundColor: theme.colors.card,
         },
-        headerTintColor: theme.colors.text,
         headerTitleStyle: {
-          fontWeight: 'bold',
+          color: theme.colors.text,
         },
-      }}>
+        headerTintColor: theme.colors.text,
+      }}
+    >
       <Tabs.Screen
         name="home"
         options={{
           title: 'Home',
           headerShown: false,
-          tabBarIcon: ({ color }) => <Ionicons name="home" size={24} color={color} />,
+          tabBarIcon: ({ color }) => <Ionicons size={28} name="home-outline" color={color} />,
+          href: isBusiness ? null : '/(tabs)/home',
         }}
       />
       <Tabs.Screen
@@ -36,15 +41,15 @@ export default function TabLayout() {
         options={{
           title: 'Search',
           headerShown: false,
-          tabBarIcon: ({ color }) => <Ionicons name="search" size={24} color={color} />,
+          tabBarIcon: ({ color }) => <Ionicons size={28} name="search-outline" color={color} />,
         }}
       />
-      <Tabs.Screen
+       <Tabs.Screen
         name="map"
         options={{
           title: 'Map',
-          headerShown: false,
-          tabBarIcon: ({ color }) => <Ionicons name="map" size={24} color={color} />,
+          headerShown: false, // Hides the ugly map header
+          tabBarIcon: ({ color }) => <Ionicons size={28} name="map-outline" color={color} />,
         }}
       />
       <Tabs.Screen
@@ -52,16 +57,16 @@ export default function TabLayout() {
         options={{
           title: 'Dashboard',
           headerShown: false,
-          tabBarIcon: ({ color }) => <Ionicons name="analytics" size={24} color={color} />,
+          tabBarIcon: ({ color }) => <Ionicons size={28} name="stats-chart-outline" color={color} />,
+          href: isBusiness ? '/(tabs)/dashboard' : null,
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
           title: 'Settings',
-          // The header is now hidden!
           headerShown: false,
-          tabBarIcon: ({ color }) => <Ionicons name="settings" size={24} color={color} />,
+          tabBarIcon: ({ color }) => <Ionicons size={28} name="cog-outline" color={color} />,
         }}
       />
     </Tabs>

@@ -1,35 +1,64 @@
+import { useRouter } from 'expo-router';
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { useTheme } from '@/src/hooks/useTheme';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import Button from '@/components/Button';
-import { useNavigation } from '@react-navigation/native';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { supabase } from '@/src/lib/supabaseClient';
+import { useAppStore } from '@/src/lib/store';
 
 export default function RoleSelectionScreen() {
-  const { theme } = useTheme();
-  const navigation = useNavigation<any>();
+  const router = useRouter();
+  const setRole = useAppStore((state) => state.setRole);
+
+  const handleSelectRole = async (role: 'customer' | 'business') => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No user found");
+
+      // Update the 'profiles' table with the selected role
+      const { error } = await supabase
+        .from('profiles')
+        .update({ role: role })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      // Update the role in our app's state
+      setRole(role);
+
+      // Navigate to the correct part of the app
+      if (role === 'business') {
+        router.replace('/(tabs)/dashboard');
+      } else {
+        router.replace('/(tabs)/home');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Could not save your role. Please try again.');
+      console.error(error);
+    }
+  };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <Ionicons name="person-add-outline" size={64} color={theme.colors.primary} />
-      <Text style={[styles.title, { color: theme.colors.text }]}>Join Verifi</Text>
-      <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
-        How would you like to get started?
-      </Text>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.content}>
+        <Text style={styles.title}>How will you use Verifi?</Text>
+        <Text style={styles.subtitle}>Choose your role to get started.</Text>
 
-      <Button
-        title="Sign up as a Consumer"
-        onPress={() => navigation.navigate('SignUp', { role: 'consumer' })}
-        variant="secondary"
-        style={{ width: '100%', marginBottom: theme.spacing.l }}
-      />
-      <Button
-        title="Register my Business"
-        onPress={() => navigation.navigate('SignUp', { role: 'owner' })}
-        variant="primary"
-        style={{ width: '100%' }}
-      />
+        <TouchableOpacity style={styles.card} onPress={() => handleSelectRole('customer')}>
+          <Ionicons name="people-outline" size={40} color="#007AFF" />
+          <Text style={styles.cardTitle}>I'm a Customer</Text>
+          <Text style={styles.cardDescription}>
+            Discover and review local businesses
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.card} onPress={() => handleSelectRole('business')}>
+          <Ionicons name="business-outline" size={40} color="#34C759" />
+          <Text style={styles.cardTitle}>I'm a Business</Text>
+          <Text style={styles.cardDescription}>
+            Manage your profile and connect with customers
+          </Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
@@ -37,18 +66,44 @@ export default function RoleSelectionScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#121212',
     justifyContent: 'center',
-    alignItems: 'center',
+  },
+  content: {
     padding: 24,
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    marginTop: 16,
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 8,
   },
   subtitle: {
-    fontSize: 16,
-    marginBottom: 48,
+    fontSize: 18,
+    color: '#A0A0A0',
     textAlign: 'center',
+    marginBottom: 48,
+  },
+  card: {
+    backgroundColor: '#1E1E1E',
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#2C2C2C',
+  },
+  cardTitle: {
+    fontSize: 22,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginTop: 16,
+  },
+  cardDescription: {
+    fontSize: 16,
+    color: '#A0A0A0',
+    textAlign: 'center',
+    marginTop: 8,
   },
 });
